@@ -1,13 +1,269 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDE Online – HTML CSS JS</title>
 
+<!-- CodeMirror -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/theme/monokai.min.css">
 
+<style>
+  body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #212121;
+    font-family: 'Courier New', monospace;
+  }
 
+  /* ==== TÍTULO ANIMADO ==== */
+  #typing-container {
+    text-align: center;
+    margin: 10px 0;
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+
+  #cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.2em;
+    background: white;
+    vertical-align: middle;
+    animation: blink 0.7s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* ==== CONTENEDOR PRINCIPAL ==== */
+  .main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ==== PANEL DE EDICIÓN ==== */
+  .editor-container {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 5px;
+  }
+
+  /* ==== TABS ==== */
+  .tabs {
+    display: flex;
+    background: #111;
+    border-bottom: 2px solid #333;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    color: #bbb;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .tab.active {
+    background: #333;
+    color: #fff;
+    border-bottom: 2px solid #00BCD4;
+  }
+
+  .editor {
+    flex: 1;
+    display: none;
+  }
+
+  .editor.active {
+    display: block;
+  }
+
+  .CodeMirror {
+    height: 100%;
+    font-size: 14px;
+  }
+
+  /* ==== PREVIEW ==== */
+  .preview-container {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+  }
+
+  .preview-container span.title {
+    color: white;
+    font-weight: bolder;
+    font-size: x-large;
+    margin-bottom: 5px;
+  }
+
+  iframe {
+    flex: 1;
+    border: none;
+    background: white;
+  }
+</style>
 </head>
 <body>
-    
-<p>hola desde github</p>
+
+<!-- ==== TÍTULO ANIMADO ==== -->
+<div id="typing-container">
+  IDE online: <span id="word"></span><span id="cursor"></span>
+</div>
+
+<!-- ==== CONTENEDOR PRINCIPAL ==== -->
+<div class="main-container">
+
+  <!-- PANEL IZQUIERDO: EDITOR -->
+  <div class="editor-container">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" data-editor="html">HTML</div>
+      <div class="tab" data-editor="css">CSS</div>
+      <div class="tab" data-editor="js">JS</div>
+    </div>
+
+    <!-- EDITORES -->
+    <div id="htmlEditor" class="editor active"></div>
+    <div id="cssEditor" class="editor"></div>
+    <div id="jsEditor" class="editor"></div>
+
+  </div>
+
+  <!-- PANEL DERECHO: PREVIEW -->
+  <div class="preview-container">
+    <span class="title">Preview</span>
+    <iframe id="preview"></iframe>
+  </div>
+
+</div>
+
+<!-- ==== CodeMirror JS ==== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/edit/matchbrackets.min.js"></script>
+
+<script>
+  /* ==== Inicialización de CodeMirror ==== */
+  const htmlEditor = CodeMirror(document.getElementById("htmlEditor"), {
+    value: "<h1>Hola mundo</h1>",
+    mode: "htmlmixed",
+    theme: "monokai",
+    lineNumbers: true,
+    matchBrackets: true
+  });
+
+  const cssEditor = CodeMirror(document.getElementById("cssEditor"), {
+    value: "h1 { color: blue; }",
+    mode: "css",
+    theme: "monokai",
+    lineNumbers: true,
+    matchBrackets: true
+  });
+
+  const jsEditor = CodeMirror(document.getElementById("jsEditor"), {
+    value: "console.log('Hola mundo');",
+    mode: "javascript",
+    theme: "monokai",
+    lineNumbers: true,
+    matchBrackets: true
+  });
+
+  const preview = document.getElementById("preview");
+
+  function updatePreview() {
+    const html = htmlEditor.getValue();
+    const css  = "<style>" + cssEditor.getValue() + "</style>";
+    const js   = "<script>" + jsEditor.getValue() + "<\/script>";
+    preview.srcdoc = html + css + js;
+  }
+
+  htmlEditor.on("change", updatePreview);
+  cssEditor.on("change", updatePreview);
+  jsEditor.on("change", updatePreview);
+  updatePreview();
+
+  /* ==== Manejo de TABS con refresh ==== */
+  const tabs = document.querySelectorAll(".tab");
+  const editors = {
+    html: htmlEditor,
+    css: cssEditor,
+    js: jsEditor
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelector(".tab.active").classList.remove("active");
+      tab.classList.add("active");
+
+      document.querySelector(".editor.active").classList.remove("active");
+      const editorDiv = document.getElementById(tab.dataset.editor + "Editor");
+      editorDiv.classList.add("active");
+
+      // Refrescar el editor para que se dibuje bien al mostrarse
+      setTimeout(() => editors[tab.dataset.editor].refresh(), 50);
+    });
+  });
+
+  /* ==== Texto animado ==== */
+  const words = [
+    { text: "HTML", color: "#FF6700" },
+    { text: "CSS", color: "#2196F3" },
+    { text: "JS", color: "#FFFF00" }
+  ];
+  const wordElement = document.getElementById("word");
+  let currentWord = 0;
+  let currentChar = 0;
+  let typing = true;
+
+  function type() {
+    const wordObj = words[currentWord];
+    const word = wordObj.text;
+    wordElement.style.color = wordObj.color;
+
+    if (typing) {
+      wordElement.textContent += word[currentChar];
+      currentChar++;
+      if (currentChar === word.length) {
+        typing = false;
+        setTimeout(type, 1000);
+      } else {
+        setTimeout(type, 200);
+      }
+    } else {
+      wordElement.textContent = wordElement.textContent.slice(0, -1);
+      currentChar--;
+      if (currentChar === 0) {
+        typing = true;
+        currentWord = (currentWord + 1) % words.length;
+        setTimeout(type, 500);
+      } else {
+        setTimeout(type, 100);
+      }
+    }
+  }
+
+  type();
+</script>
 
 </body>
 </html>
